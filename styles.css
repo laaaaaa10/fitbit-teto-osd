@@ -1,0 +1,22 @@
+#background { x: 0; y: 0; width: 300; height: 300; fill: black; }
+#teto       { x: 75; y: 0; width: 225; height: 300; }
+
+/* battery — width NOT set here; JS controls it via style.width */
+#battery_shell { x: 250; y: 6;  width: 34; height: 16; fill: #1a1a1a; rx: 3; ry: 3; }
+#battery_fill  { x: 252; y: 8;           height: 12; fill: #FF2D78; rx: 2; ry: 2; }
+#battery_bump  { x: 284; y: 9;  width: 3;  height: 10; fill: #1a1a1a; rx: 2; ry: 2; }
+
+#date_top { font-family: System-Bold; font-size: 12; x: 68; y: 42; fill: #FF2D78; text-anchor: middle; }
+#date_day { font-family: System-Bold; font-size: 12; x: 68; y: 57; fill: #FF2D78; text-anchor: middle; }
+
+#h_tens { x: 14; y: 72;  width: 55; height: 100; }
+#h_ones { x: 65; y: 72;  width: 55; height: 100; }
+#m_tens { x: 14; y: 177; width: 55; height: 100; }
+#m_ones { x: 65; y: 177; width: 55; height: 100; }
+
+#hr_icon    { x: 200; y: 93;  width: 18; height: 18; }
+#hr_val     { font-family: System-Bold; font-size: 18; x: 226; y: 110; fill: white; }
+#steps_icon { x: 200; y: 163; width: 18; height: 18; }
+#steps_val  { font-family: System-Bold; font-size: 18; x: 226; y: 180; fill: white; }
+#cal_icon   { x: 200; y: 233; width: 18; height: 18; }
+#cal_val    { font-family: System-Bold; font-size: 18; x: 226; y: 250; fill: white; }

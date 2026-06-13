@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitbit Digit Generator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px}
+.wrap{width:100%;max-width:660px;display:flex;flex-direction:column;gap:20px}
+h1{font-size:22px;font-weight:600;letter-spacing:-0.3px}
+h1 span{color:#FF2D78}
+
+/* Drop zone */
+.drop{border:1.5px dashed #2a2a2a;border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop.over{border-color:#FF2D78;background:rgba(255,45,120,.05)}
+.drop input{display:none}
+.drop-title{font-size:14px;color:#888;margin-top:8px}
+.drop-title strong{color:#fff}
+.drop-title b{color:#FF2D78}
+.font-status{font-size:12px;color:#444;margin-top:6px;transition:color .2s}
+.font-status.loaded{color:#4ade80}
+
+/* Cards */
+.card{background:#141414;border:1px solid #222;border-radius:10px;padding:20px 22px}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#555;margin-bottom:14px}
+
+/* RGBA */
+.rgba-row{display:grid;grid-template-columns:16px 1fr 58px;gap:6px 10px;align-items:center;margin-bottom:6px}
+.ch{font-size:13px;font-weight:700}
+.ch-r{color:#ff6666}.ch-g{color:#66dd66}.ch-b{color:#6699ff}.ch-a{color:#aaa}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;outline:none;cursor:pointer;width:100%}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #0d0d0d;cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0d0d0d;cursor:pointer;border:none}
+.num{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:5px;color:#fff;padding:5px 6px;font-size:12px;font-family:monospace;width:58px;text-align:center}
+.num:focus{outline:none;border-color:#FF2D78}
+.num::-webkit-inner-spin-button,.num::-webkit-outer-spin-button{opacity:.5}
+
+/* Swatch + hex row */
+.swatch-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+.swatch-bg{width:44px;height:44px;border-radius:8px;flex-shrink:0;background-image:repeating-conic-gradient(#2a2a2a 0% 25%,#1a1a1a 0% 50%);background-size:12px 12px;position:relative;overflow:hidden}
+.swatch-fill{position:absolute;inset:0}
+.hex-box{background:#0d0d0d;border:1px solid #2a2a2a;border-radius:5px;color:#fff;padding:8px 12px;font-family:monospace;font-size:13px;width:130px}
+.hex-box:focus{outline:none;border-color:#FF2D78}
+.hex-hint{font-size:11px;color:#444;margin-top:2px}
+
+/* Font size */
+.fs-row{display:flex;align-items:center;gap:12px}
+.fs-row input[type=range]{flex:1;background:#2a2a2a}
+.fs-val{font-size:14px;font-weight:700;color:#FF2D78;min-width:38px;text-align:right}
+.fs-note{font-size:11px;color:#444;margin-top:6px}
+
+/* Preview */
+.preview-wrap{background:#000;border-radius:8px;padding:14px;display:flex;gap:3px;flex-wrap:wrap;align-items:center;justify-content:flex-start;min-height:110px;border:1px solid #111}
+.no-font{font-size:12px;color:#333;margin:auto}
+
+/* CSS hint */
+.css-block{background:#0d0d0d;border:1px solid #1e1e1e;border-radius:8px;padding:14px 16px;font-family:monospace;font-size:12px;color:#555;white-space:pre;line-height:1.9;overflow-x:auto}
+.css-block .pk{color:#FF2D78}
+.css-block .wh{color:#ccc}
+
+/* Button */
+.dl-btn{background:#FF2D78;color:#fff;border:none;border-radius:8px;padding:13px 30px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;align-self:flex-start}
+.dl-btn:hover:not(:disabled){opacity:.85}
+.dl-btn:active:not(:disabled){opacity:.7}
+.dl-btn:disabled{background:#222;color:#444;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Fitbit <span>Digit Generator</span></h1>
+
+<!-- Font drop zone -->
+<div class="drop" id="drop">
+  <input type="file" id="fontFile" accept=".ttf,.otf">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h8m-8 6h16M14 12l4 4 4-4m-4-6v10"/></svg>
+  <p class="drop-title">Drop your <strong>TTF / OTF</strong> here or <b>click to browse</b></p>
+  <p class="font-status" id="fontStatus">No font loaded</p>
+</div>
+
+<!-- Color -->
+<div class="card">
+  <p class="card-title">Color — RGBA</p>
+  <div class="rgba-row"><span class="ch ch-r">R</span><input type="range" id="sR" min="0" max="255" value="255"><input type="number" class="num" id="nR" min="0" max="255" value="255"></div>
+  <div class="rgba-row"><span class="ch ch-g">G</span><input type="range" id="sG" min="0" max="255" value="45"><input type="number" class="num" id="nG" min="0" max="255" value="45"></div>
+  <div class="rgba-row"><span class="ch ch-b">B</span><input type="range" id="sB" min="0" max="255" value="120"><input type="number" class="num" id="nB" min="0" max="255" value="120"></div>
+  <div class="rgba-row"><span class="ch ch-a">A</span><input type="range" id="sA" min="0" max="255" value="255"><input type="number" class="num" id="nA" min="0" max="255" value="255"></div>
+  <div class="swatch-row">
+    <div class="swatch-bg"><div class="swatch-fill" id="swFill"></div></div>
+    <div>
+      <input type="text" class="hex-box" id="hexIn" value="#FF2D78FF" placeholder="#rrggbbaa">
+      <p class="hex-hint">8-char hex (#rrggbbaa) or 6-char (#rrggbb)</p>
+    </div>
+  </div>
+</div>
+
+<!-- Font size -->
+<div class="card">
+  <p class="card-title">Font size</p>
+  <div class="fs-row">
+    <input type="range" id="fsSlider" min="30" max="200" value="110" step="1">
+    <span class="fs-val" id="fsVal">110px</span>
+  </div>
+  <p class="fs-note">For your stencil font 110px is correct. Only adjust when switching to a different font that renders too large or too small.</p>
+</div>
+
+<!-- Preview -->
+<div class="card">
+  <p class="card-title">Preview — on watch black</p>
+  <div class="preview-wrap" id="preview">
+    <span class="no-font">Load a font to preview</span>
+  </div>
+</div>
+
+<!-- Download -->
+<button class="dl-btn" id="dlBtn" disabled onclick="download()">Download digits.zip</button>
+
+<!-- CSS hint -->
+<div class="card">
+  <p class="card-title">Paste into styles.css</p>
+  <div class="css-block" id="cssBlock"><span style="color:#333"><!-- load a font first --></span></div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+var CW = 55, CH = 100;
+var fontFamily = null;
+var fontLoaded = false;
+
+function clamp(v,a,b){return Math.min(b,Math.max(a,Math.round(v)||0)}
+function toHex2(n){return ('0'+clamp(n,0,255).toString(16)).slice(-2)}
+
+function getColor(){
+  var r=clamp(+document.getElementById('nR').value,0,255);
+  var g=clamp(+document.getElementById('nG').value,0,255);
+  var b=clamp(+document.getElementById('nB').value,0,255);
+  var a=clamp(+document.getElementById('nA').value,0,255);
+  return {r,g,b,a};
+}
+
+function colorCss(c){
+  return 'rgba('+c.r+','+c.g+','+c.b+','+(c.a/255).toFixed(3)+')';
+}
+
+function updateSliderBg(){
+  var c=getColor();
+  document.getElementById('sR').style.background='linear-gradient(to right,rgb(0,'+c.g+','+c.b+'),rgb(255,'+c.g+','+c.b+'))';
+  document.getElementById('sG').style.background='linear-gradient(to right,rgb('+c.r+',0,'+c.b+'),rgb('+c.r+',255,'+c.b+'))';
+  document.getElementById('sB').style.background='linear-gradient(to right,rgb('+c.r+','+c.g+',0),rgb('+c.r+','+c.g+',255))';
+  document.getElementById('sA').style.background='linear-gradient(to right,rgba('+c.r+','+c.g+','+c.b+',0),rgba('+c.r+','+c.g+','+c.b+',1))';
+  document.getElementById('swFill').style.background=colorCss(c);
+  document.getElementById('hexIn').value='#'+toHex2(c.r)+toHex2(c.g)+toHex2(c.b)+toHex2(c.a);
+}
+
+function syncFromHex(hex){
+  hex=hex.trim().replace(/^#/,'');
+  var r,g,b,a=255;
+  if(hex.length===6){r=parseInt(hex.slice(0,2),16);g=parseInt(hex.slice(2,4),16);b=parseInt(hex.slice(4,6),16);}
+  else if(hex.length===8){r=parseInt(hex.slice(0,2),16);g=parseInt(hex.slice(2,4),16);b=parseInt(hex.slice(4,6),16);a=parseInt(hex.slice(6,8),16);}
+  else return;
+  if([r,g,b,a].some(isNaN))return;
+  document.getElementById('nR').value=document.getElementById('sR').value=r;
+  document.getElementById('nG').value=document.getElementById('sG').value=g;
+  document.getElementById('nB').value=document.getElementById('sB').value=b;
+  document.getElementById('nA').value=document.getElementById('sA').value=a;
+  updateSliderBg();
+  refresh();
+}
+
+function syncSliderNum(sliderId,numId){
+  var s=document.getElementById(sliderId),n=document.getElementById(numId);
+  s.addEventListener('input',function(){n.value=s.value;updateSliderBg();refresh();});
+  n.addEventListener('input',function(){s.value=clamp(+n.value,0,255);updateSliderBg();refresh();});
+}
+syncSliderNum('sR','nR');syncSliderNum('sG','nG');syncSliderNum('sB','nB');syncSliderNum('sA','nA');
+
+document.getElementById('hexIn').addEventListener('change',function(){syncFromHex(this.value);});
+document.getElementById('fsSlider').addEventListener('input',function(){
+  document.getElementById('fsVal').textContent=this.value+'px';
+  refresh();
+});
+
+function renderDigit(digit){
+  var c=getColor();
+  var fs=parseInt(document.getElementById('fsSlider').value);
+  var cv=document.createElement('canvas');
+  cv.width=CW;cv.height=CH;
+  var ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,CW,CH);
+  ctx.font=fs+'px '+fontFamily;
+  ctx.fillStyle=colorCss(c);
+  var m=ctx.measureText(String(digit));
+  var gw=m.width;
+  var asc=m.actualBoundingBoxAscent!=null?m.actualBoundingBoxAscent:fs*0.8;
+  var desc=m.actualBoundingBoxDescent!=null?m.actualBoundingBoxDescent:fs*0.1;
+  var gh=asc+desc;
+  ctx.fillText(String(digit),(CW-gw)/2,(CH-gh)/2+asc);
+  return cv;
+}
+
+function refresh(){
+  if(!fontLoaded)return;
+  var wrap=document.getElementById('preview');
+  wrap.innerHTML='';
+  for(var i=0;i<10;i++)wrap.appendChild(renderDigit(i));
+  updateCSSHint();
+  document.getElementById('dlBtn').disabled=false;
+}
+
+function updateCSSHint(){
+  var gap=4;
+  var lm=Math.max(0,Math.floor((145-2*CW-gap)/2));
+  var x2=lm+CW+gap;
+  var el=document.getElementById('cssBlock');
+  el.innerHTML=
+    '<span class="pk">#h_tens</span> { <span class="wh">x: '+lm+'</span>; y: 68;  width: <span class="wh">'+CW+'</span>; height: <span class="wh">'+CH+'</span>; }\n'+
+    '<span class="pk">#h_ones</span> { <span class="wh">x: '+x2+'</span>; y: 68;  width: <span class="wh">'+CW+'</span>; height: <span class="wh">'+CH+'</span>; }\n'+
+    '<span class="pk">#m_tens</span> { <span class="wh">x: '+lm+'</span>; y: '+(68+CH+15)+'; width: <span class="wh">'+CW+'</span>; height: <span class="wh">'+CH+'</span>; }\n'+
+    '<span class="pk">#m_ones</span> { <span class="wh">x: '+x2+'</span>; y: '+(68+CH+15)+'; width: <span class="wh">'+CW+'</span>; height: <span class="wh">'+CH+'</span>; }';
+}
+
+async function loadFont(file){
+  var name='FitbitDigit_'+Date.now();
+  var buf=await file.arrayBuffer();
+  var face=new FontFace(name,buf);
+  await face.load();
+  document.fonts.add(face);
+  fontFamily=name;
+  fontLoaded=true;
+  var el=document.getElementById('fontStatus');
+  el.textContent=file.name+' loaded';
+  el.className='font-status loaded';
+  refresh();
+}
+
+async function download(){
+  if(!fontLoaded||typeof JSZip==='undefined')return;
+  var zip=new JSZip();
+  var jobs=[];
+  for(var i=0;i<10;i++){
+    (function(n){
+      jobs.push(new Promise(function(res){
+        renderDigit(n).toBlob(function(blob){zip.file(n+'.png',blob);res();},'image/png');
+      }));
+    })(i);
+  }
+  await Promise.all(jobs);
+  var blob=await zip.generateAsync({type:'blob'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='digits.zip';a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},2000);
+}
+
+var dz=document.getElementById('drop'),fi=document.getElementById('fontFile');
+dz.addEventListener('click',function(){fi.click();});
+fi.addEventListener('change',function(){if(fi.files[0])loadFont(fi.files[0]);});
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('over');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])loadFont(e.dataTransfer.files[0]);});
+
+updateSliderBg();
+</script>
+</body>
+</html>
