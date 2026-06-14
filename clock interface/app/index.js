@@ -9,13 +9,12 @@ import { battery } from "power";
 // ─────────────────────────────────────────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
-// Drop more portraits next to teto.png and list them here. One is chosen at
-// random every time you raise your wrist. Crop them like teto.png (same 225×300
-// framing) so the left fade + layout still line up.
+// Drop more character PNGs in the randomIMG folder and list them here. One is 
+// chosen at random every time you raise your wrist.
 var IMAGES = [
-  "teto.png"
-  // , "resources/teto2.png.txi"
-  // , "resources/teto3.png.txi"
+  "randomIMG/teto.png"
+  // , "randomIMG/teto2.png"
+  // , "randomIMG/teto3.png"
 ];
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -37,8 +36,8 @@ const mTens     = document.getElementById("m_tens");
 const mOnes     = document.getElementById("m_ones");
 
 // Elements for the wake animations
-const tetoEl      = document.getElementById("teto");
-const revealEl    = document.getElementById("reveal");
+const characterEl = document.getElementById("character");
+const fadeEl      = document.getElementById("fadeGroup");
 const timeGroupEl = document.getElementById("timeGroup");
 
 function digit(n) { return "digits/" + n + ".png"; }
@@ -67,26 +66,21 @@ function updateActivity() {
 // ── Random portrait on wake ─────────────────────────────────────────────────────
 var currentImg = 0;
 function pickRandomImage() {
-//  if (IMAGES.length <= 1) { return; }          // nothing to swap, skip the decode
-//  var next = currentImg;
-//  while (next === currentImg) {                 // never the same one twice in a row
-//    next = Math.floor(Math.random() * IMAGES.length);
-//  }
-//  currentImg = next;
-//  tetoEl.href = IMAGES[next];
+  if (IMAGES.length <= 1) { return; }          // nothing to swap, skip the decode
+  var next = currentImg;
+  while (next === currentImg) {                 // never the same one twice in a row
+    next = Math.floor(Math.random() * IMAGES.length);
+  }
+  currentImg = next;
+  characterEl.href = IMAGES[next];
 }
 
 // ── Wake animations (JavaScript-driven) ─────────────────────────────────────────
-// These are driven entirely from JS via groupTransform, NOT SVG/SMIL animation.
-// Why: a frozen SMIL animation holds its end value and wins over a manual reset,
-// so on the next wake the finished frame paints for ~0.1s before the animation
-// re-runs (the flash). Driving it ourselves means the resting state is whatever
-// we last set — and the mask's geometry is built so x=0 fully COVERS the portrait,
-// which is the start. So a wake paints "covered" first, then we slide it open.
-//   reveal: groupTransform.translate.x  0 (covered)  -> -255 (revealed)
-//   time:   groupTransform.translate.x  -14 (left)   ->    0 (in place)
+// Fade.png is 600×300 (300px fade mask on left + 300px transparent on right).
+// It slides from x=0 (covering character) to x=-300 (character fully revealed).
+// Character image stays fixed while fade slides over it.
 var REVEAL_COVERED  = 0;
-var REVEAL_OPEN     = -255;
+var REVEAL_OPEN     = -300;
 var TIME_START      = -14;
 var TIME_REST       = 0;
 var ANIM_FRAMES     = 21;     // ~0.7s at the interval below
@@ -98,8 +92,8 @@ var animFrame = 0;
 function easeOut(t) { return 1 - (1 - t) * (1 - t); }   // gentle deceleration
 
 function setStartState() {
-  // Park at the start: portrait fully covered, time slid left.
-  if (revealEl)    { revealEl.groupTransform.translate.x    = REVEAL_COVERED; }
+  // Park at the start: fade fully covering, time slid left.
+  if (fadeEl)      { fadeEl.groupTransform.translate.x      = REVEAL_COVERED; }
   if (timeGroupEl) { timeGroupEl.groupTransform.translate.x = TIME_START; }
 }
 
@@ -116,7 +110,7 @@ function playWakeAnimations() {
     var t = animFrame / ANIM_FRAMES;
     if (t > 1) { t = 1; }
     var e = easeOut(t);
-    if (revealEl)    { revealEl.groupTransform.translate.x    = REVEAL_COVERED + (REVEAL_OPEN - REVEAL_COVERED) * e; }
+    if (fadeEl)      { fadeEl.groupTransform.translate.x      = REVEAL_COVERED + (REVEAL_OPEN - REVEAL_COVERED) * e; }
     if (timeGroupEl) { timeGroupEl.groupTransform.translate.x = TIME_START     + (TIME_REST   - TIME_START)   * e; }
     if (animFrame >= ANIM_FRAMES) { stopAnim(); }
   }, ANIM_INTERVAL);
@@ -159,21 +153,19 @@ if (appbit.permissions.granted("access_heart_rate")) {
 
 // ── Display power handling ───────────────────────────────────────────────────────
 // On wake: restart the HR sensor and play the entrances. On sleep: stop the sensor
-// AND re-park the animations at their start, so the next wake shows the start state
-// (the fix for the 0.1s flash where the finished result showed before the animation).
+// AND re-park the animations at their start, so the next wake shows the start state.
 function onDisplayChange() {
   if (display.on) {
     if (hrm) { hrm.start(); }
-    pickRandomImage();        // fresh portrait (hidden behind the cover)...
-    playWakeAnimations();     // ...wipes in from the right, time slides in too
+    pickRandomImage();        // pick a random character image
+    playWakeAnimations();     // fade slides over it, time slides in
   } else {
     if (hrm) { hrm.stop(); }
-    resetWakeAnimations();    // re-cover the image + reset the time for next wake
+    resetWakeAnimations();    // re-cover and reset for next wake
   }
 }
 display.addEventListener("change", onDisplayChange);
 
-// First paint: the GUI's resting state is already the START (covered image /
-// slid-left time), so we just pick a portrait and play the entrance once.
+// First paint: pick a character and play the entrance animation.
 pickRandomImage();
 playWakeAnimations();
