@@ -13,7 +13,7 @@ import { battery } from "power";
 // random every time you raise your wrist. Crop them like teto.png (same 225×300
 // framing) so the left fade + layout still line up.
 var IMAGES = [
-  "teto.png.txi"
+  "teto.png"
   // , "resources/teto2.png.txi"
   // , "resources/teto3.png.txi"
 ];
@@ -67,13 +67,13 @@ function updateActivity() {
 // ── Random portrait on wake ─────────────────────────────────────────────────────
 var currentImg = 0;
 function pickRandomImage() {
-  if (IMAGES.length <= 1) { return; }          // nothing to swap, skip the decode
-  var next = currentImg;
-  while (next === currentImg) {                 // never the same one twice in a row
-    next = Math.floor(Math.random() * IMAGES.length);
-  }
-  currentImg = next;
-  tetoEl.href = IMAGES[next];
+//  if (IMAGES.length <= 1) { return; }          // nothing to swap, skip the decode
+//  var next = currentImg;
+//  while (next === currentImg) {                 // never the same one twice in a row
+//    next = Math.floor(Math.random() * IMAGES.length);
+//  }
+//  currentImg = next;
+//  tetoEl.href = IMAGES[next];
 }
 
 // ── Wake animations (JavaScript-driven) ─────────────────────────────────────────
