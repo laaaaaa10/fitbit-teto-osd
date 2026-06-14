@@ -13,9 +13,9 @@ import { battery } from "power";
 // random every time you raise your wrist. Crop them like teto.png (same 225×300
 // framing) so the left fade + layout still line up.
 var IMAGES = [
-  "teto.png"
-  // , "teto2.png"
-  // , "teto3.png"
+  "resources/teto.png.txi"
+  // , "resources/teto2.png.txi"
+  // , "resources/teto3.png.txi"
 ];
 // ─────────────────────────────────────────────────────────────────────────────
 
