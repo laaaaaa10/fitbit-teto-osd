@@ -76,14 +76,57 @@ function pickRandomImage() {
   tetoEl.href = IMAGES[next];
 }
 
-// ── Wake animations ─────────────────────────────────────────────────────────────
-// Both entrances are defined declaratively in index.gui (begin="enable"); we just
-// fire them here. The portrait stays still while a black mask peels off it from
-// right to left (so it wipes in from the right), and the time slides + fades in.
-// Nothing animates while the screen is off, so battery is unaffected.
+// ── Wake animations (JavaScript-driven) ─────────────────────────────────────────
+// These are driven entirely from JS via groupTransform, NOT SVG/SMIL animation.
+// Why: a frozen SMIL animation holds its end value and wins over a manual reset,
+// so on the next wake the finished frame paints for ~0.1s before the animation
+// re-runs (the flash). Driving it ourselves means the resting state is whatever
+// we last set — and the mask's geometry is built so x=0 fully COVERS the portrait,
+// which is the start. So a wake paints "covered" first, then we slide it open.
+//   reveal: groupTransform.translate.x  0 (covered)  -> -255 (revealed)
+//   time:   groupTransform.translate.x  -14 (left)   ->    0 (in place)
+var REVEAL_COVERED  = 0;
+var REVEAL_OPEN     = -255;
+var TIME_START      = -14;
+var TIME_REST       = 0;
+var ANIM_FRAMES     = 21;     // ~0.7s at the interval below
+var ANIM_INTERVAL   = 33;     // ms per frame (~30fps)
+
+var animTimer = null;
+var animFrame = 0;
+
+function easeOut(t) { return 1 - (1 - t) * (1 - t); }   // gentle deceleration
+
+function setStartState() {
+  // Park at the start: portrait fully covered, time slid left.
+  if (revealEl)    { revealEl.groupTransform.translate.x    = REVEAL_COVERED; }
+  if (timeGroupEl) { timeGroupEl.groupTransform.translate.x = TIME_START; }
+}
+
+function stopAnim() {
+  if (animTimer !== null) { clearInterval(animTimer); animTimer = null; }
+}
+
 function playWakeAnimations() {
-  if (revealEl)    { revealEl.animate("enable"); }     // portrait wipes in from the right
-  if (timeGroupEl) { timeGroupEl.animate("enable"); }  // time slides + fades in
+  stopAnim();
+  setStartState();            // jump to covered / slid-left
+  animFrame = 0;
+  animTimer = setInterval(function() {
+    animFrame++;
+    var t = animFrame / ANIM_FRAMES;
+    if (t > 1) { t = 1; }
+    var e = easeOut(t);
+    if (revealEl)    { revealEl.groupTransform.translate.x    = REVEAL_COVERED + (REVEAL_OPEN - REVEAL_COVERED) * e; }
+    if (timeGroupEl) { timeGroupEl.groupTransform.translate.x = TIME_START     + (TIME_REST   - TIME_START)   * e; }
+    if (animFrame >= ANIM_FRAMES) { stopAnim(); }
+  }, ANIM_INTERVAL);
+}
+
+function resetWakeAnimations() {
+  // On sleep: stop any in-progress slide and park at the start, so the next wake
+  // shows "covered" first. No SMIL is involved, so this set actually sticks.
+  stopAnim();
+  setStartState();
 }
 
 // ── Clock ───────────────────────────────────────────────────────────────────────
@@ -114,18 +157,23 @@ if (appbit.permissions.granted("access_heart_rate")) {
   hrm.start();
 }
 
-// ── Display power handling (stops the HR sensor while the screen is off) ─────────
+// ── Display power handling ───────────────────────────────────────────────────────
+// On wake: restart the HR sensor and play the entrances. On sleep: stop the sensor
+// AND re-park the animations at their start, so the next wake shows the start state
+// (the fix for the 0.1s flash where the finished result showed before the animation).
 function onDisplayChange() {
   if (display.on) {
     if (hrm) { hrm.start(); }
-    pickRandomImage();        // fresh portrait...
+    pickRandomImage();        // fresh portrait (hidden behind the cover)...
     playWakeAnimations();     // ...wipes in from the right, time slides in too
   } else {
     if (hrm) { hrm.stop(); }
+    resetWakeAnimations();    // re-cover the image + reset the time for next wake
   }
 }
 display.addEventListener("change", onDisplayChange);
 
-// First paint when the face loads
+// First paint: the GUI's resting state is already the START (covered image /
+// slid-left time), so we just pick a portrait and play the entrance once.
 pickRandomImage();
 playWakeAnimations();

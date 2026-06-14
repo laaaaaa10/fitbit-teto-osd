@@ -232,26 +232,26 @@
 
   <!-- Image reveal: a black mask over the portrait that recedes right→left on
        each wake, so the picture appears to wipe in from the right while staying
-       perfectly still. It sits above the portrait but BELOW the clock + stats,
-       so all your info is visible the whole time. The big rect is solid black;
-       the 10 thin rects are its soft fading edge (gradients aren't reliable, so
-       it's stepped like your fade). Resting at translate(45,0) = fully revealed;
-       the animation starts at 300 (image fully covered) and slides the mask off
-       to the left. Driven from index.js via reveal.animate("enable"). -->
-  <g id="reveal" transform="translate(45,0)" pointer-events="none">
-    <rect x="-350" y="0" width="350" height="300" fill="black" />
-    <rect x="0"  y="0" width="3" height="300" fill="black" opacity="0.92" />
-    <rect x="3"  y="0" width="3" height="300" fill="black" opacity="0.82" />
-    <rect x="6"  y="0" width="3" height="300" fill="black" opacity="0.70" />
-    <rect x="9"  y="0" width="3" height="300" fill="black" opacity="0.58" />
-    <rect x="12" y="0" width="3" height="300" fill="black" opacity="0.46" />
-    <rect x="15" y="0" width="3" height="300" fill="black" opacity="0.35" />
-    <rect x="18" y="0" width="3" height="300" fill="black" opacity="0.25" />
-    <rect x="21" y="0" width="3" height="300" fill="black" opacity="0.16" />
-    <rect x="24" y="0" width="3" height="300" fill="black" opacity="0.09" />
-    <rect x="27" y="0" width="3" height="300" fill="black" opacity="0.04" />
-    <animateTransform attributeType="translate" from="300,0" to="45,0"
-                      begin="enable" dur="0.7" easing="ease-out" final="restore" />
+       perfectly still. Sits above the portrait but BELOW the clock + stats, so
+       all your info is visible the whole time. The big rect is solid black; the
+       10 thin rects are its soft fading right edge (stepped, since gradients
+       aren't reliable). NO SVG animation here on purpose: with zero transform
+       this geometry COVERS the whole portrait, which is the resting state — so a
+       wake can never paint the finished result first. index.js slides the group
+       LEFT (groupTransform.translate.x: 0 = covered → -255 = revealed) with a JS
+       timer, and parks it back at 0 on display-off. -->
+  <g id="reveal" transform="translate(0,0)" pointer-events="none">
+    <rect x="-400" y="0" width="700" height="300" fill="black" />
+    <rect x="300" y="0" width="3" height="300" fill="black" opacity="0.92" />
+    <rect x="303" y="0" width="3" height="300" fill="black" opacity="0.82" />
+    <rect x="306" y="0" width="3" height="300" fill="black" opacity="0.70" />
+    <rect x="309" y="0" width="3" height="300" fill="black" opacity="0.58" />
+    <rect x="312" y="0" width="3" height="300" fill="black" opacity="0.46" />
+    <rect x="315" y="0" width="3" height="300" fill="black" opacity="0.35" />
+    <rect x="318" y="0" width="3" height="300" fill="black" opacity="0.25" />
+    <rect x="321" y="0" width="3" height="300" fill="black" opacity="0.16" />
+    <rect x="324" y="0" width="3" height="300" fill="black" opacity="0.09" />
+    <rect x="327" y="0" width="3" height="300" fill="black" opacity="0.04" />
   </g>
 
   <rect id="battery_shell" rx="3" ry="3" />
@@ -261,11 +261,12 @@
   <text id="date_top">--- --</text>
   <text id="date_day">---</text>
 
-  <!-- Time: 4 image elements, one per digit, hrefs swapped in JS.
-       Wrapped in a group so they slide in from the left + fade on each wake. -->
+  <!-- Time: 4 image elements, one per digit, hrefs swapped in JS. Wrapped in a
+       group so they slide in from the left on each wake. No SVG animation here:
+       index.js drives the slide via groupTransform (start -14 → rest 0) and the
+       resting/default position is 0 (in place), so the digits are always
+       readable and never blink. -->
   <g id="timeGroup" transform="translate(0,0)">
-    <animate          attributeName="opacity"   from="0"     to="1"   begin="enable" dur="0.45" easing="ease-out" final="restore" />
-    <animateTransform attributeType="translate"  from="-14,0" to="0,0" begin="enable" dur="0.45" easing="ease-out" final="restore" />
     <image id="h_tens" href="digits/0.png" />
     <image id="h_ones" href="digits/0.png" />
     <image id="m_tens" href="digits/0.png" />
