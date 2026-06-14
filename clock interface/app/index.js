@@ -83,7 +83,7 @@ var REVEAL_COVERED  = 0;
 var REVEAL_OPEN     = -300;
 var TIME_START      = -14;
 var TIME_REST       = 0;
-var ANIM_FRAMES     = 21;     // ~0.7s at the interval below
+var ANIM_FRAMES     = 10;     // ~0.35s at the interval below
 var ANIM_INTERVAL   = 33;     // ms per frame (~30fps)
 
 var animTimer = null;
