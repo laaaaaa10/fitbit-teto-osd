@@ -4,7 +4,14 @@
   </defs>
 
   <rect id="background" />
-  <image id="teto" href="teto.png" />
+  <image id="teto" href="teto.png">
+    <!-- Portrait slides in from the right and settles into place on every wake;
+         clock + stats are already on screen. Resting x is 75 (see styles.css);
+         it starts ~95px to the right and slides left. A light fade rides along
+         so the leading edge looks clean. Driven via teto.animate("enable"). -->
+    <animate attributeName="x"       from="170" to="75" begin="enable" dur="0.7" easing="ease-out" final="restore" />
+    <animate attributeName="opacity" from="0"   to="1"  begin="enable" dur="0.5" easing="ease-out" final="restore" />
+  </image>
  
   <!-- Smooth fade: 1px-wide rects from x=75 to x=295 with linear opacity -->
   <rect class="teto_fade" x="75" y="0" width="1" height="300" fill="black" opacity="1.000"/>
@@ -237,11 +244,16 @@
   <text id="date_top">--- --</text>
   <text id="date_day">---</text>
 
-  <!-- Time: 4 image elements, one per digit, hrefs swapped in JS -->
-  <image id="h_tens" href="digits/0.png" />
-  <image id="h_ones" href="digits/0.png" />
-  <image id="m_tens" href="digits/0.png" />
-  <image id="m_ones" href="digits/0.png" />
+  <!-- Time: 4 image elements, one per digit, hrefs swapped in JS.
+       Wrapped in a group so they slide in from the left + fade on each wake. -->
+  <g id="timeGroup" transform="translate(0,0)">
+    <animate          attributeName="opacity"   from="0"     to="1"   begin="enable" dur="0.45" easing="ease-out" final="restore" />
+    <animateTransform attributeType="translate"  from="-14,0" to="0,0" begin="enable" dur="0.45" easing="ease-out" final="restore" />
+    <image id="h_tens" href="digits/0.png" />
+    <image id="h_ones" href="digits/0.png" />
+    <image id="m_tens" href="digits/0.png" />
+    <image id="m_ones" href="digits/0.png" />
+  </g>
 
   <!-- Metrics -->
   <image id="hr_icon"    href="fonts/heart.png" />

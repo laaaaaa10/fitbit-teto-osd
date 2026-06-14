@@ -6,6 +6,19 @@ import { today } from "user-activity";
 import { display } from "display";
 import { battery } from "power";
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+// Drop more portraits next to teto.png and list them here. One is chosen at
+// random every time you raise your wrist. Crop them like teto.png (same 225×300
+// framing) so the left fade + layout still line up.
+var IMAGES = [
+  "teto.png"
+  // , "teto2.png"
+  // , "teto3.png"
+];
+// ─────────────────────────────────────────────────────────────────────────────
+
 const DAYS   = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
 const MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
@@ -22,6 +35,10 @@ const hTens     = document.getElementById("h_tens");
 const hOnes     = document.getElementById("h_ones");
 const mTens     = document.getElementById("m_tens");
 const mOnes     = document.getElementById("m_ones");
+
+// Elements for the wake animations
+const tetoEl      = document.getElementById("teto");
+const timeGroupEl = document.getElementById("timeGroup");
 
 function digit(n) { return "digits/" + n + ".png"; }
 
@@ -46,7 +63,28 @@ function updateActivity() {
   calEl.text   = String(a.calories || 0);
 }
 
-// ── Clock ─────────────────────────────────────────────────────────────────────
+// ── Random portrait on wake ─────────────────────────────────────────────────────
+var currentImg = 0;
+function pickRandomImage() {
+  if (IMAGES.length <= 1) { return; }          // nothing to swap, skip the decode
+  var next = currentImg;
+  while (next === currentImg) {                 // never the same one twice in a row
+    next = Math.floor(Math.random() * IMAGES.length);
+  }
+  currentImg = next;
+  tetoEl.href = IMAGES[next];
+}
+
+// ── Wake animations ─────────────────────────────────────────────────────────────
+// Both entrances are defined declaratively in index.gui (begin="enable"); we
+// just fire them here. The portrait slides in from the right, the time slides
+// + fades in. Nothing animates while the screen is off, so battery is unaffected.
+function playWakeAnimations() {
+  if (tetoEl)      { tetoEl.animate("enable"); }       // portrait slides in from the right
+  if (timeGroupEl) { timeGroupEl.animate("enable"); }  // time slides + fades in
+}
+
+// ── Clock ───────────────────────────────────────────────────────────────────────
 clock.granularity = "minutes";
 clock.addEventListener("tick", function(evt) {
   var date = evt.date;
@@ -64,14 +102,28 @@ clock.addEventListener("tick", function(evt) {
   updateActivity();
 });
 
-// ── Heart rate ────────────────────────────────────────────────────────────────
+// ── Heart rate ──────────────────────────────────────────────────────────────────
+var hrm = null;
 if (appbit.permissions.granted("access_heart_rate")) {
-  var hrm = new HeartRateSensor({ frequency: 1 });
+  hrm = new HeartRateSensor({ frequency: 1 });
   hrm.addEventListener("reading", function() {
     hrValEl.text = hrm.heartRate ? String(hrm.heartRate) : "--";
   });
-  display.addEventListener("change", function() {
-    if (display.on) { hrm.start(); } else { hrm.stop(); }
-  });
   hrm.start();
 }
+
+// ── Display power handling (stops the HR sensor while the screen is off) ─────────
+function onDisplayChange() {
+  if (display.on) {
+    if (hrm) { hrm.start(); }
+    pickRandomImage();        // fresh portrait...
+    playWakeAnimations();     // ...slides in from the right, time slides in too
+  } else {
+    if (hrm) { hrm.stop(); }
+  }
+}
+display.addEventListener("change", onDisplayChange);
+
+// First paint when the face loads
+pickRandomImage();
+playWakeAnimations();
