@@ -4,14 +4,7 @@
   </defs>
 
   <rect id="background" />
-  <image id="teto" href="teto.png">
-    <!-- Portrait slides in from the right and settles into place on every wake;
-         clock + stats are already on screen. Resting x is 75 (see styles.css);
-         it starts ~95px to the right and slides left. A light fade rides along
-         so the leading edge looks clean. Driven via teto.animate("enable"). -->
-    <animate attributeName="x"       from="170" to="75" begin="enable" dur="0.7" easing="ease-out" final="restore" />
-    <animate attributeName="opacity" from="0"   to="1"  begin="enable" dur="0.5" easing="ease-out" final="restore" />
-  </image>
+  <image id="teto" href="teto.png" />
  
   <!-- Smooth fade: 1px-wide rects from x=75 to x=295 with linear opacity -->
   <rect class="teto_fade" x="75" y="0" width="1" height="300" fill="black" opacity="1.000"/>
@@ -236,6 +229,30 @@
   <rect class="teto_fade" x="294" y="0" width="1" height="300" fill="black" opacity="0.005"/>
   <rect class="teto_fade" x="295" y="0" width="1" height="300" fill="black" opacity="0.000"/>
 
+
+  <!-- Image reveal: a black mask over the portrait that recedes right→left on
+       each wake, so the picture appears to wipe in from the right while staying
+       perfectly still. It sits above the portrait but BELOW the clock + stats,
+       so all your info is visible the whole time. The big rect is solid black;
+       the 10 thin rects are its soft fading edge (gradients aren't reliable, so
+       it's stepped like your fade). Resting at translate(45,0) = fully revealed;
+       the animation starts at 300 (image fully covered) and slides the mask off
+       to the left. Driven from index.js via reveal.animate("enable"). -->
+  <g id="reveal" transform="translate(45,0)" pointer-events="none">
+    <rect x="-350" y="0" width="350" height="300" fill="black" />
+    <rect x="0"  y="0" width="3" height="300" fill="black" opacity="0.92" />
+    <rect x="3"  y="0" width="3" height="300" fill="black" opacity="0.82" />
+    <rect x="6"  y="0" width="3" height="300" fill="black" opacity="0.70" />
+    <rect x="9"  y="0" width="3" height="300" fill="black" opacity="0.58" />
+    <rect x="12" y="0" width="3" height="300" fill="black" opacity="0.46" />
+    <rect x="15" y="0" width="3" height="300" fill="black" opacity="0.35" />
+    <rect x="18" y="0" width="3" height="300" fill="black" opacity="0.25" />
+    <rect x="21" y="0" width="3" height="300" fill="black" opacity="0.16" />
+    <rect x="24" y="0" width="3" height="300" fill="black" opacity="0.09" />
+    <rect x="27" y="0" width="3" height="300" fill="black" opacity="0.04" />
+    <animateTransform attributeType="translate" from="300,0" to="45,0"
+                      begin="enable" dur="0.7" easing="ease-out" final="restore" />
+  </g>
 
   <rect id="battery_shell" rx="3" ry="3" />
   <rect id="battery_fill"  rx="2" ry="2" />

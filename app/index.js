@@ -38,6 +38,7 @@ const mOnes     = document.getElementById("m_ones");
 
 // Elements for the wake animations
 const tetoEl      = document.getElementById("teto");
+const revealEl    = document.getElementById("reveal");
 const timeGroupEl = document.getElementById("timeGroup");
 
 function digit(n) { return "digits/" + n + ".png"; }
@@ -76,11 +77,12 @@ function pickRandomImage() {
 }
 
 // ── Wake animations ─────────────────────────────────────────────────────────────
-// Both entrances are defined declaratively in index.gui (begin="enable"); we
-// just fire them here. The portrait slides in from the right, the time slides
-// + fades in. Nothing animates while the screen is off, so battery is unaffected.
+// Both entrances are defined declaratively in index.gui (begin="enable"); we just
+// fire them here. The portrait stays still while a black mask peels off it from
+// right to left (so it wipes in from the right), and the time slides + fades in.
+// Nothing animates while the screen is off, so battery is unaffected.
 function playWakeAnimations() {
-  if (tetoEl)      { tetoEl.animate("enable"); }       // portrait slides in from the right
+  if (revealEl)    { revealEl.animate("enable"); }     // portrait wipes in from the right
   if (timeGroupEl) { timeGroupEl.animate("enable"); }  // time slides + fades in
 }
 
@@ -117,7 +119,7 @@ function onDisplayChange() {
   if (display.on) {
     if (hrm) { hrm.start(); }
     pickRandomImage();        // fresh portrait...
-    playWakeAnimations();     // ...slides in from the right, time slides in too
+    playWakeAnimations();     // ...wipes in from the right, time slides in too
   } else {
     if (hrm) { hrm.stop(); }
   }
